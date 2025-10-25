@@ -1,0 +1,8 @@
+# Ignore Jupyter Notebook checkpoints
+notebooks/NLP Classification 1.ipynb
+
+# docker
+docker
+
+#uv
+.venv
