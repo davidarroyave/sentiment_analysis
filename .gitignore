@@ -6,3 +6,11 @@ docker
 
 #uv
 .venv
+
+# uv package manager
+uv.lock
+.uv/
+
+#dvc
+.dvcignore
+
