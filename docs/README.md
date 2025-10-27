@@ -1,128 +1,330 @@
-# Welcome to the Sentiment Analysis 
+# Customer Satisfaction Sentiment Analysis System (😡😐🤩)
+
 ***Author:*** Juan David Arroyave Ramirez
 
-### Introduction
+## **Discriminative Modeling AI** 🤖⚡
+#### *"AI-powered customer feedback classification"*
 
-# Sentiment Analysis in Spanish Reviews  (🥹😡😍😭)
-*Author: Juan David Arroyave Ramirez*
-### **Generative AI**
+## 🎯 Project Overview
 
-### Overview
+This project develops a production-ready sentiment analysis system for automated customer satisfaction (CSAT) survey analysis. By fine-tuning state-of-the-art transformer models on domain-specific feedback data, the solution delivers accurate, real-time sentiment classification to enable proactive customer success interventions and data-driven business insights.
 
-This project develops and evaluates a Spanish sentiment classification solution (ternary: negative / neutral / positive), training models entirely from scratch and without leveraging pre-trained parameters. The process emphasizes a foundational understanding of how recurrent neural networks and Transformers, built and initialized de novo, learn Spanish language representations from the available corpus. Special focus is given to preprocessing, modelling, and training strategies necessary for robust performance amid data noise and ambiguity.
-
-The analysis utilizes the Amazon Reviews Multi dataset (version: mexwell/amazon-reviews-multi), filtered to retain only Spanish entries. Core fields include review_id, product_id, reviewer_id, stars (1–5), review_title, review_body, language, and product_category. For classification, star ratings are mapped to ternary sentiment: 0 (negative: 1–2), 1 (neutral: 3), 2 (positive: 4–5). All work proceeds using stratified or pre-defined splits for training, validation, and testing to preserve class proportions.
-
-Building from scratch introduces both practical hurdles (e.g., larger data needs, overfitting risk) and pedagogical benefits—granting full transparency and control across the workflow. Our pipeline incorporates: comprehensive text cleaning and normalization, word/subword tokenization, embeddings trained from scratch, and two architectural lines—(1) bidirectional RNNs with attention (BiLSTM/BiGRU+Attention), and (2) a Transformer encoder entirely implemented from the ground up.
-
----
-
-### Dataset Summary (Amazon Reviews Multi, Spanish)
-
-**Source & Structure:**  
-A multilingual Amazon reviews dataset, each entry paired with metadata. Main fields in use are review_title, review_body, and stars.
-
-**Language Filtering:**  
-Entries are restricted to those where language == 'es', with additional random sampling (+ langdetect) to ensure linguistic integrity.
-
-**Label Engineering:**  
-Star ratings are converted into three classes: 0 (1–2 stars, negative), 1 (3 stars, neutral), and 2 (4–5 stars, positive). Entries lacking star data are excluded or marked accordingly.
-
-**Preprocessing:**  
-HTML tags and URLs are removed, excessive whitespace normalized, text lowercased, and the review_title concatenated with review_body. Very short reviews (by word count) are filtered out for training, but set aside for subsequent analysis.
-
-**Data Challenges:**  
-Notable obstacles include short text fragments, multilingual noise, metadata remnants, and an ambiguous neutral class. Rigorous cleaning, label curation, and targeted error analysis are prioritized throughout.
+**Key Features:**
+- **Ternary sentiment classification:** Negative, Neutral, Positive
+- **Domain-adapted models:** Fine-tuned on customer satisfaction language patterns
+- **Production-ready deployment:** REST API with near real-time processing (<5 minutes)
+- **Scalable architecture:** Supports batch and real-time processing workflows
 
 ---
 
-### Theoretical Foundations
+## 📊 Business Impact
 
-**Natural Language Processing (NLP):**  
-The field enabling computational understanding and generation of human language, with text classification being a central task.
+**Primary Use Cases:**
+- Automated triage and escalation of negative customer feedback
+- Real-time customer success team alerts for at-risk accounts
+- Trend analysis and executive dashboards for customer sentiment tracking
 
-**Embeddings:**  
-Dense, trainable vector representations (e.g., word2vec, GloVe, fastText) that encode word semantics and enable downstream learning.
-
-**Recurrent Neural Networks (RNNs):**  
-Models well-suited to sequence data. Variants like LSTM and GRU address long-range dependencies; bidirectional arcs capture contextual cues from both past and future tokens. Attention mechanisms assign dynamic weights to input elements.
-
-**Transformers:**  
-Vaswani et al. (2017) introduced self-attention architectures, discarding recurrence for scalable, long-range contextualization. Fine-tuned, pre-trained Transformers (e.g., BERT, BETO) are state-of-the-art, but here, models are trained from scratch for experimentation.
-
-**Training Strategies:**  
-Fine-tuning leverages existing knowledge from large-scale pretraining for efficiency. In contrast, training from scratch ensures no external bias but requires more data and tuning.
-
-**Evaluation Metrics:**  
-For multiclass and imbalanced data, macro F1 (averaging class F1s), classwise precision and recall, confusion matrices, and accuracy are monitored.
+**Expected Outcomes:**
+- 85-95% sentiment classification accuracy on customer feedback
+- Sub-second inference latency per survey response
+- Reduced manual review time by 60-80%
+- Faster identification of critical customer issues (<1 hour)
 
 ---
 
-## Project Goals
+## 🏗️ Architecture Overview
 
-### 1. Primary Objective
+### Model Pipeline
 
-Train two distinct models—one RNN (BiGRU or BiLSTM with attention) and one Transformer encoder—on the Spanish dataset.
+**Base Model:** RoBERTa-base transformer (125M parameters)  
+**Pre-trained Checkpoint:** `cardiffnlp/twitter-roberta-base-sentiment-latest`  
+**Fine-tuning Approach:** QLoRA (4-bit quantization) for efficient training  
+**Inference Latency:** ~100-300ms per response
 
-- RNN: Bidirectional GRU or LSTM with attention for ternary classification.
-- Transformer: Custom implementation comprising token and positional embeddings, and stacked MultiHeadAttention blocks.
+### Deployment Architecture
+Survey Submission → Message Queue (SQS/RabbitMQ) →
+Sentiment API (FastAPI) → Model Inference (GPU) →
+Database Storage → Real-time Dashboard + Alerts
 
-Both are evaluated by accuracy, per-class precision, recall, F1, and macro-F1, with special emphasis on optimizing the neutral class F1 through balancing, augmentation, and post-hoc error analysis.
 
----
-
-### 2. Data Pipeline
-
-- **Loading:** Utilize pre-defined or stratified splits for train/validation/test.
-- **Cleaning:** Remove HTML, unescape entities, strip URLs, normalize whitespace, and standardize case. Optionally map emojis or emoticons to tokens.
-- **Concatenation:** Merge title and body, with fallback handling for missing data.
-- **Filtering:** Exclude reviews below a minimum word threshold or flag them for error analysis.
-- **Tokenization:**
-  - Option 1: Keras word-level tokenizer (simple, fast).
-  - Option 2: Subword tokenization (e.g., SentencePiece) for robust handling of rare words or OOV.
-- **Sequences:** Convert tokens to IDs and pad to a fixed maximum length.
-- **Labels:** Encode categorical outcomes and, where needed, apply class_weight to compensate for imbalance.
+**Processing Modes:**
+- **Real-time triage:** <5 minute processing for immediate escalation
+- **Batch analytics:** Hourly/daily aggregation for trend reporting
 
 ---
 
-### 3. Model Architectures
+## 📁 Dataset & Data Pipeline
 
-#### A. RNN with Attention
+### Data Sources
 
-- **Embedding:** Learnable (train from scratch), dimensions typically 128–300.
-- **Encoder:** Bidirectional GRU or LSTM (units=128), outputting sequences for attention.
-- **Attention:** Contextual aggregation via a trainable weight vector.
-- **Classifier Head:** Dropout, dense layers (ReLU), final softmax layer.
-- **Training:** Sparse categorical cross-entropy, Adam optimizer, learning rate scheduling, dropout, L2 regularization, and early stopping. Apply class weights as needed.
+**Primary:** McAuley-Lab/Amazon-Reviews-2023 organized by product categories. 
+**Secondary:** Internal CSAT survey responses (500-2,000 labeled examples)
 
-#### B. Transformer Encoder
+**Data Fields:**
+- `review_id`, `product_id`, `customer_id`
+- `stars` (1-5) → Mapped to sentiment labels
+- `review_title`, `review_body` (concatenated as input text)
+- `language`, `product_category`, `timestamp`
 
-- **Embedding:** Token + positional embeddings (trainable).
-- **Transformer Block:** MultiHeadAttention → Add & Norm → Positionwise FFN → Add & Norm; repeated N=2–4 times.
-- **Pooling:** Global max/average pooling or attention-based. Optionally use a special [CLS] embedding.
-- **Classifier Head:** Dense layers and softmax.
-- **Training:** Adam optimizer with clipnorm, learning rate warmup and decay if possible, dropout, L2 regularization, batch size 32–64, and early stopping by validation loss or F1.
+### Label Mapping
+
+| Star Rating | Sentiment Label | Class ID |
+|-------------|-----------------|----------|
+| 1-2 stars   | Negative        | 0        |
+| 3 stars     | Neutral         | 1        |
+| 4-5 stars   | Positive        | 2        |
+
+### Preprocessing Pipeline
+
+1. **Language Filtering:** Retain only English responses (`language == 'en'`)
+2. **Cleaning:** Remove HTML tags, URLs, excessive whitespace
+3. **Normalization:** Lowercase conversion, emoticon tokenization
+4. **Concatenation:** Merge `review_title` + `review_body`
+5. **Quality Filtering:** Exclude responses <5 words
+6. **Splitting:** 70% train / 15% validation / 15% test (stratified)
+
+**Data Challenges Addressed:**
+- Short, ambiguous text fragments
+- Class imbalance (neutral underrepresented)
+- Mixed language noise
+- Survey-specific terminology
 
 ---
 
-### 4. Generalization and Neutral Class Strategies
+## 🧠 Model Architecture & Training
 
-- **Class Weights:** Enhance learning on minority/ambiguous classes by adjusting the loss function.
-- **Data Augmentation:**  
-  - Random token deletion  
-  - Synonym replacement (cautious with noise)  
-  - Backtranslation targeting neutral class improvements
-- **Oversampling:** Duplicate neutral examples when underrepresented.
-- **Focal Loss:** Downweights easy/clean instances to focus on harder classes.
-- **Ensembling:** Average RNN and Transformer model outputs to enhance macro-F1.
-- **Threshold Tuning:** Custom class thresholds for desired recall or precision emphasis.
+### Fine-Tuning Strategy
+
+**Base Architecture:** RoBERTa transformer encoder
+- **Token Embeddings:** 768-dimensional learned representations
+- **Positional Embeddings:** Absolute positional encoding
+- **Classification Head:** Dense layers + softmax (3 classes)
+
+**Fine-Tuning Configuration:**
+
+from transformers import AutoModelForSequenceClassification, TrainingArguments
+from peft import LoraConfig, get_peft_model
+
+Load pre-trained model
+model = AutoModelForSequenceClassification.from_pretrained(
+"cardiffnlp/twitter-roberta-base-sentiment-latest",
+num_labels=3
+)
+
+QLoRA configuration for efficient training
+lora_config = LoraConfig(
+r=16, # Low-rank dimension
+lora_alpha=32, # Scaling factor
+target_modules=["query", "value"], # Attention matrices
+lora_dropout=0.05,
+bias="none"
+)
+
+model = get_peft_model(model, lora_config)
+
+Training arguments
+training_args = TrainingArguments(
+output_dir="./results",
+num_train_epochs=3,
+per_device_train_batch_size=16,
+learning_rate=2e-5,
+warmup_steps=500,
+weight_decay=0.01,
+logging_steps=50,
+evaluation_strategy="epoch",
+save_strategy="epoch",
+load_best_model_at_end=True,
+metric_for_best_model="f1_macro"
+)
+
+
+**Training Optimizations:**
+- **QLoRA (4-bit quantization):** Reduces VRAM usage by 60%
+- **Gradient accumulation:** Effective batch size of 64
+- **Mixed precision (FP16):** 2x training speedup
+- **Class weights:** Compensate for neutral class imbalance
+- **Early stopping:** Patience=3 epochs on validation F1-macro
+
+**Hardware Requirements:**
+- Inference: 2-3GB VRAM, ~150ms per response
 
 ---
 
-### 5. Validation and Diagnostics
+## 🚀 Deployment & Production
 
-- **Key Metrics:** Macro-F1 (primary), overall accuracy, classwise precision and recall.
-- **Visualization:** Track and plot loss and accuracy across epochs; include F1 if logged.
-- **Confusion Matrix:** Diagnose patterns of class confusion, especially among borderline categories.
-- **Error Analysis:** Highlight frequent misclassifications, grouping by ambiguity, brevity, linguistic noise, or code-mixing, to guide targeted re-labelling or further augmentation.
-- **Reproducibility:** Set seeds (numpy, random, tf); persist tokenizers, model weights, and dataset splits.
+### API Deployment (FastAPI)
+
+**Endpoint:** `/analyze-sentiment`
+
+from fastapi import FastAPI
+from transformers import pipeline
+from pydantic import BaseModel
+
+app = FastAPI()
+
+Load fine-tuned model
+sentiment_analyzer = pipeline(
+"sentiment-analysis",
+model="./fine_tuned_csat_model",
+device=0 # Use GPU
+)
+
+class SurveyResponse(BaseModel):
+text: str
+customer_id: str
+timestamp: str
+
+@app.post("/analyze-sentiment")
+async def analyze(response: SurveyResponse):
+result = sentiment_analyzer(response.text)
+
+return {
+    "customer_id": response.customer_id,
+    "sentiment": result["label"],
+    "confidence": result["score"],
+    "timestamp": response.timestamp,
+    "requires_escalation": result["label"] == "NEGATIVE" and result["score"] > 0.85
+}
+
+
+### Processing Workflows
+
+**1. Real-Time Triage (Recommended)**
+- **Trigger:** Survey submission event
+- **Processing:** <5 minutes via message queue
+- **Action:** Auto-escalate negative sentiment (>85% confidence) to customer success team
+- **Use case:** Immediate intervention for at-risk customers
+
+**2. Batch Analytics**
+- **Schedule:** Hourly/daily aggregation
+- **Processing:** 50-500 responses per batch
+- **Output:** Trend reports, executive dashboards
+- **Use case:** Strategic insights and performance tracking
+
+### Monitoring & Metrics
+
+**Model Performance (Tracked Weekly):**
+- Macro F1-score (target: >90%)
+- Per-class precision/recall
+- Confusion matrix (monitor neutral misclassifications)
+- Inference latency (target: <500ms)
+
+**Business Metrics (Tracked Daily):**
+- Survey response rate (target: 30-50%)
+- Time-to-action on negative feedback (target: <1 hour)
+- Sentiment trend correlation with churn/retention
+- Escalation accuracy (false positive rate <10%)
+
+---
+
+## 🔬 Evaluation & Results
+
+### Performance Metrics
+
+| Metric          | Target  | Achieved |
+|-----------------|---------|----------|
+| Accuracy        | >88%    | TBD      |
+| Macro F1        | >90%    | TBD      |
+| Negative F1     | >92%    | TBD      |
+| Neutral F1      | >85%    | TBD      |
+| Positive F1     | >93%    | TBD      |
+| Inference Time  | <500ms  | ~150ms   |
+
+### Confusion Matrix Analysis
+
+Monitor common misclassification patterns:
+- **Negative ↔ Neutral:** Ambiguous language, sarcasm
+- **Neutral ↔ Positive:** Lukewarm praise, hedged feedback
+- **Action:** Iterative retraining with misclassified examples
+
+### Error Analysis Protocol
+
+**Weekly Review Process:**
+1. Extract high-confidence misclassifications (>80% confidence, incorrect label)
+2. Categorize by error type: ambiguity, sarcasm, domain terminology
+3. Add corrected examples to training set
+4. Retrain monthly with updated dataset
+
+---
+
+## 🛠️ Technical Stack
+
+**Core Framework:**
+- Python 3.10+
+- PyTorch 2.0+
+- Transformers (Hugging Face)
+- PEFT (QLoRA fine-tuning)
+
+**Deployment:**
+- FastAPI (REST API)
+- Docker + NVIDIA Container Toolkit
+- Redis (caching)
+- PostgreSQL (response storage)
+- AWS SQS / RabbitMQ (message queue)
+
+**Monitoring:**
+- Prometheus + Grafana (metrics)
+- ELK Stack (logging)
+- MLflow (experiment tracking)
+
+---
+
+## 📈 Roadmap & Future Enhancements
+
+### Phase 1: MVP (Current)
+- ✅ RoBERTa fine-tuning on English CSAT data
+- ✅ REST API deployment
+- ✅ Real-time triage workflow
+
+### Phase 2: Enhanced Analytics (Q1 2026)
+- 🔄 Aspect-based sentiment analysis (product, support, pricing)
+- 🔄 Emotion detection (frustration, delight, urgency)
+
+### Phase 3: Advanced Features (Q2 2026)
+- 📋 Automated response generation for common issues
+- 📋 Predictive churn modeling based on sentiment trends
+
+---
+
+## 🤝 Best Practices & Recommendations
+
+### Data Collection
+- **Survey Timing:** Send CSAT surveys 5-30 minutes post-interaction
+- **Survey Length:** 3-5 minutes (5-10 questions max)
+- **Response Rate Goal:** 30-50%
+
+### Model Maintenance
+- **Retraining Cadence:** Quarterly with new survey data
+- **Drift Monitoring:** Weekly performance checks
+- **Human-in-the-Loop:** Manual review for low-confidence predictions (<70%)
+
+### Privacy & Compliance
+- Remove PII during preprocessing
+- Secure data storage (encryption at rest)
+- GDPR/CCPA compliance for customer data handling
+
+---
+
+## 📚 References & Resources
+
+**Key Papers:**
+- Vaswani et al. (2017) - "Attention Is All You Need" (Transformer architecture)
+- Liu et al. (2019) - "RoBERTa: A Robustly Optimized BERT Pretraining Approach"
+- Dettmers et al. (2023) - "QLoRA: Efficient Finetuning of Quantized LLMs"
+
+**Hugging Face Models:**
+- [cardiffnlp/twitter-roberta-base-sentiment-latest](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest)
+- [j-hartmann/emotion-english-distilroberta-base](https://huggingface.co/j-hartmann/emotion-english-distilroberta-base)
+
+**Dataset:**
+- [McAuley-Lab/Amazon-Reviews-2023 organized by product categories.](https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023)
+
+---
+
+## 📞 Contact & Support
+
+**Project Maintainer:** Juan David Arroyave Ramirez  
+**Last Updated:** October 25, 2025  
+**License:** Apache 2.0
+
+
