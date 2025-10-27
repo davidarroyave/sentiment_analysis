@@ -1,5 +1,6 @@
 # Ignore Jupyter Notebook checkpoints
 notebooks/NLP Classification 1.ipynb
+notebooks/Sentiment_Analysis.ipynb
 
 # docker
 docker
@@ -13,4 +14,28 @@ __pycache__/
 *$py.class
 
 # Ignore DVC
-.dvcignore
+.dvcignore/
+
+# uv package manager
+uv.lock/
+.uv/
+
+#MLflow
+mlruns/
+logs/
+
+#datasets
+data/
+
+#models
+src/models/
+src/data/
+
+#Reports
+reports/
+
+#Visualizations
+visualizations/
+
+#Main
+main.py
