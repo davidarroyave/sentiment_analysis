@@ -123,21 +123,6 @@ bias="none"
 
 model = get_peft_model(model, lora_config)
 
-Training arguments
-training_args = TrainingArguments(
-output_dir="./results",
-num_train_epochs=3,
-per_device_train_batch_size=16,
-learning_rate=2e-5,
-warmup_steps=500,
-weight_decay=0.01,
-logging_steps=50,
-evaluation_strategy="epoch",
-save_strategy="epoch",
-load_best_model_at_end=True,
-metric_for_best_model="f1_macro"
-)
-
 
 **Training Optimizations:**
 - **QLoRA (4-bit quantization):** Reduces VRAM usage by 60%
