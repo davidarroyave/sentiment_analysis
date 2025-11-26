@@ -1,5 +1,6 @@
 # Customer Satisfaction Sentiment Analysis System 
-# (😡😐🤩)
+# (😡😐🤩) **http://www.thesentimentcheck.com/** 
+## public IP: **(http://159.89.145.212:8501/)**
 
 ***Author:*** Juan David Arroyave Ramirez
 
@@ -101,28 +102,6 @@ Database Storage → Real-time Dashboard + Alerts
 - **Positional Embeddings:** Absolute positional encoding
 - **Classification Head:** Dense layers + softmax (3 classes)
 
-**Fine-Tuning Configuration:**
-
-from transformers import AutoModelForSequenceClassification, TrainingArguments
-from peft import LoraConfig, get_peft_model
-
-Load pre-trained model
-model = AutoModelForSequenceClassification.from_pretrained(
-"cardiffnlp/twitter-roberta-base-sentiment-latest",
-num_labels=3
-)
-
-QLoRA configuration for efficient training
-lora_config = LoraConfig(
-r=16, # Low-rank dimension
-lora_alpha=32, # Scaling factor
-target_modules=["query", "value"], # Attention matrices
-lora_dropout=0.05,
-bias="none"
-)
-
-model = get_peft_model(model, lora_config)
-
 
 **Training Optimizations:**
 - **QLoRA (4-bit quantization):** Reduces VRAM usage by 60%
@@ -137,40 +116,7 @@ model = get_peft_model(model, lora_config)
 ---
 
 ## 🚀 Deployment & Production
-
-### API Deployment (FastAPI)
-
-**Endpoint:** `/analyze-sentiment`
-
-from fastapi import FastAPI
-from transformers import pipeline
-from pydantic import BaseModel
-
-app = FastAPI()
-
-Load fine-tuned model
-sentiment_analyzer = pipeline(
-"sentiment-analysis",
-model="./fine_tuned_csat_model",
-device=0 # Use GPU
-)
-
-class SurveyResponse(BaseModel):
-text: str
-customer_id: str
-timestamp: str
-
-@app.post("/analyze-sentiment")
-async def analyze(response: SurveyResponse):
-result = sentiment_analyzer(response.text)
-
-return {
-    "customer_id": response.customer_id,
-    "sentiment": result["label"],
-    "confidence": result["score"],
-    "timestamp": response.timestamp,
-    "requires_escalation": result["label"] == "NEGATIVE" and result["score"] > 0.85
-}
+Automated with Gitlab CI/CD Pipeline
 
 
 ### Processing Workflows
@@ -200,58 +146,6 @@ return {
 - Time-to-action on negative feedback (target: <1 hour)
 - Sentiment trend correlation with churn/retention
 - Escalation accuracy (false positive rate <10%)
-
----
-
-## 🔬 Evaluation & Results
-
-### Performance Metrics
-
-| Metric          | Target  | Achieved |
-|-----------------|---------|----------|
-| Accuracy        | >88%    | TBD      |
-| Macro F1        | >90%    | TBD      |
-| Negative F1     | >92%    | TBD      |
-| Neutral F1      | >85%    | TBD      |
-| Positive F1     | >93%    | TBD      |
-| Inference Time  | <500ms  | ~150ms   |
-
-### Confusion Matrix Analysis
-
-Monitor common misclassification patterns:
-- **Negative ↔ Neutral:** Ambiguous language, sarcasm
-- **Neutral ↔ Positive:** Lukewarm praise, hedged feedback
-- **Action:** Iterative retraining with misclassified examples
-
-### Error Analysis Protocol
-
-**Weekly Review Process:**
-1. Extract high-confidence misclassifications (>80% confidence, incorrect label)
-2. Categorize by error type: ambiguity, sarcasm, domain terminology
-3. Add corrected examples to training set
-4. Retrain monthly with updated dataset
-
----
-
-## 🛠️ Technical Stack
-
-**Core Framework:**
-- Python 3.10+
-- PyTorch 2.0+
-- Transformers (Hugging Face)
-- PEFT (QLoRA fine-tuning)
-
-**Deployment:**
-- FastAPI (REST API)
-- Docker + NVIDIA Container Toolkit
-- Redis (caching)
-- PostgreSQL (response storage)
-- AWS SQS / RabbitMQ (message queue)
-
-**Monitoring:**
-- Prometheus + Grafana (metrics)
-- ELK Stack (logging)
-- MLflow (experiment tracking)
 
 ---
 
@@ -307,10 +201,11 @@ Monitor common misclassification patterns:
 
 ---
 
-## 📞 Contact & Support
+## 📨 Contact
 
-**Project Maintainer:** Juan David Arroyave Ramirez  
-**Last Updated:** October 25, 2025  
+**Maintainer:** Juan David Arroyave Ramirez  
+**Email:** juan.arroyaver@outlook.com
+**Last Updated:** November 25, 2025  
 **License:** Apache 2.0
 
 
